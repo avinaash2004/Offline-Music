@@ -25,9 +25,27 @@ jobs:
           gradle-version: 8.9
 
       - name: Build release APK
-        run: gradle :app:assembleRelease --no-daemon --console=plain
+        run: |
+          set -o pipefail
+          gradle :app:assembleRelease --no-daemon --console=plain --stacktrace 2>&1 | tee build.log
 
-      - uses: actions/upload-artifact@v4
+      - name: Show errors
+        if: failure()
+        run: |
+          echo '### Build errors' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E '^e: |What went wrong|error:|Execution failed|Caused by' -A3 build.log | head -60 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
         with:
           name: OfflineMusic-apk
           path: app/build/outputs/apk/release/*.apk
