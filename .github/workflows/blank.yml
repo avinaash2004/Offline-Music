@@ -25,7 +25,7 @@ jobs:
           gradle-version: 8.9
 
       - name: Build release APK
-        run: gradle :app:assembleRelease --no-daemon
+        run: gradle :app:assembleRelease --no-daemon --console=plain
 
       - uses: actions/upload-artifact@v4
         with:
